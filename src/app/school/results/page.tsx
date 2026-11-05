@@ -1,6 +1,6 @@
 import {SchoolFormFeedback} from '@/components/school-form-feedback';
 import {SchoolLink as Link} from '@/components/school-link';
-import {notFound} from 'next/navigation';
+import {notFound,redirect} from 'next/navigation';
 import {requireSchoolAccount} from '@/lib/teamville-school/auth';
 import {currentSchoolSession,schoolClassOptions,schoolPupilColumns,type SchoolPupil,readablePupilName} from '@/lib/teamville-school/model';
 import {makePupilReport,rankPupilReports,type TermCycle,type TermMark,type TermRules,type ReportSnapshot} from '@/lib/teamville-school/term-results';
@@ -8,7 +8,7 @@ import {openTermResults,savePupilTermMarks,uploadClassTermMarks,submitTermResult
 import sourceSubjects from '@/lib/teamville-school/subject-reference.json';
 import {PupilResultView} from '../_components/pupil-result-view';
 export default async function TermResults({searchParams}:{searchParams:Promise<Record<string,string|undefined>>}){
- const {client,member}=await requireSchoolAccount(),q=await searchParams,staff=['admin','teacher'].includes(member.role),preview=q.preview==='teacher',admin=member.role==='admin'&&!preview;if(preview)notFound();
+ const {client,member}=await requireSchoolAccount(),q=await searchParams,staff=['admin','teacher'].includes(member.role),preview=q.preview==='teacher',admin=member.role==='admin'&&!preview;if(preview)redirect('/school');
  if(preview&&member.role!=='admin')notFound();
  if(!staff){const reports=await client.from('teamville_report_snapshots').select('*');if(reports.error)throw new Error('Unable to load published report cards.');return <main id="main-content" className="sp-main"><div className="sp-top"><div><span className="sp-eyebrow">School-approved results</span><h1>Your published report cards</h1><p>Midterm and examination reports stay separate. Only reports linked to your account are shown.</p></div></div><section className="sp-panel">{!(reports.data||[]).length&&<p className="sp-empty">No Term 1 report cards have been published for this account yet.</p>}<div className="sp-tool-grid">{(reports.data as ReportSnapshot[]).map(s=><Link key={s.id} href={`/school/reports/${s.id}`}><strong>{readablePupilName(s.payload.pupil_name)}</strong><p>{s.payload.class_name} · {s.payload.session} · Term {s.payload.term} · {s.payload.kind==='exam'?'Examination':'Midterm'}</p><span>Open report / save PDF</span></Link>)}</div></section></main>;}
  const [roster,cyclesResult,rulesResult]=await Promise.all([client.from('teamville_pupils').select(schoolPupilColumns).eq('enrolment_status','active').order('name'),client.from('teamville_term_cycles').select('*').eq('session',currentSchoolSession).eq('term',1),client.from('teamville_term_rules').select('*').eq('session',currentSchoolSession).eq('term',1).single()]);

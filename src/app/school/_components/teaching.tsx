@@ -4,7 +4,7 @@ import {SchoolAttendance} from '@/components/school-attendance';
 import {SchoolFormFeedback} from '@/components/school-form-feedback';
 import {SchoolDayOverview} from './day-overview';
 import {notFound,redirect} from 'next/navigation';
-import {requireSchoolAccount,requireSchoolAdmin} from '@/lib/teamville-school/auth';
+import {requireSchoolAccount} from '@/lib/teamville-school/auth';
 import {currentSchoolSession,schoolClassOptions,schoolPupilColumns,type SchoolPupil,readablePupilName} from '@/lib/teamville-school/model';
 import {schoolToday,validDate,type LessonNote,type Assessment} from '@/lib/teamville-school/operations';
 import {saveLesson,createAssessment,saveScores,reviewSchoolWork} from '@/lib/teamville-school/operation-actions';
@@ -15,7 +15,7 @@ function Review({kind,id,published=false}:{kind:string;id:string;published?:bool
 export async function SchoolTeaching({query:q,preview=false}:{query:Query;preview?:boolean}){
  const {client,member}=await requireSchoolAccount();
  if(member.role==='developer')return <ReadOnlySchoolWorkspace query={{...q,view:'teacher'}}/>;
- if(preview)await requireSchoolAdmin();
+ if(preview)redirect('/school');
  if(!['admin','teacher'].includes(member.role))notFound();
  const admin=member.role==='admin'&&!preview,base=preview?'/school/teacher-preview':'/school/teaching',tab=['attendance','lessons','scores','register'].includes(q.tab || '')?q.tab!:'overview';
  if(q.tab==='scores')redirect(`/school/results?class=${encodeURIComponent(q.class||'')}${preview?'&preview=teacher':''}`);

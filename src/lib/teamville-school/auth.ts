@@ -28,8 +28,8 @@ export async function requireSchoolAccount(setup=false){
   if(!account)redirect("/school/login");
   if(!setup && !account.member.password_ready)redirect("/school/setup");
   if(!setup){const path=(await headers()).get('x-teamville-path')||'';
-    if(['/school/teacher-preview','/school/parent-preview','/school/student-preview'].includes(path)&&account.member.role!=='developer')notFound();
-    if((path.startsWith('/school/salaries')||path==='/school/leadership'||path==='/school/grading')&&!account.member.is_head_of_school)notFound();
+    if(['/school/teacher-preview','/school/parent-preview','/school/student-preview'].includes(path)&&account.member.role!=='developer')redirect('/school');
+    if((path.startsWith('/school/salaries')||path==='/school/leadership'||path==='/school/grading')&&!account.member.is_head_of_school)redirect('/school');
   }
   if(!setup&&account.member.role==='developer'){
     const path=(await headers()).get('x-teamville-path')||'';
@@ -39,4 +39,4 @@ export async function requireSchoolAccount(setup=false){
 }
 export async function requireSchoolAdmin(){const account=await requireSchoolAccount();if(account.member.role!=="admin")notFound();return account;}
 
-export async function requireSchoolHOS(){const account=await requireSchoolAccount();if(account.member.role!=="admin"||!account.member.is_head_of_school)notFound();return account;}
+export async function requireSchoolHOS(){const account=await requireSchoolAccount();if(account.member.role!=="admin"||!account.member.is_head_of_school)redirect("/school");return account;}
