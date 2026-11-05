@@ -1,0 +1,7 @@
+import Link from 'next/link';
+import {requireSchoolAdmin} from '@/lib/teamville-school/auth';
+export default async function StaffDirectory(){
+ const {client}=await requireSchoolAdmin();const {data,error}=await client.from('teamville_staff_directory').select('id,name,position,class_name,account_id').order('name');
+ if(error)throw new Error('Unable to load staff directory.');
+ return <main id="main-content" className="sp-main"><div className="sp-top"><div><span className="sp-eyebrow">School staff</span><h1>People at Teamville</h1><p>The teaching and non-teaching staff supplied by the school. A directory entry does not grant portal access.</p></div></div><section className="sp-panel"><div className="sp-panel-heading"><h2>{data.length} staff members</h2><Link href="/school/staff" className="sp-button">Invite using verified emails</Link></div><div className="sp-table-wrap"><table className="sp-table"><thead><tr><th>Staff member</th><th>Position</th><th>Class</th><th>Portal access</th></tr></thead><tbody>{data.map(p=><tr key={p.id}><td>{p.name}</td><td>{p.position}</td><td>{p.class_name || '—'}</td><td>{p.account_id?"Individual teacher account assigned":"Not provisioned"}</td></tr>)}</tbody></table></div><p className="sp-small">Two teachers share LDC 1. Class assignments can be shared; each teacher still uses a separate login. Support staff do not receive access to pupil or financial records automatically.</p></section></main>;
+}

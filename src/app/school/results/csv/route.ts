@@ -1,0 +1,8 @@
+import {requireSchoolAccount} from '@/lib/teamville-school/auth';
+import {csvCell} from '@/lib/teamville-school/export';
+export async function GET(request:Request){const {client,member}=await requireSchoolAccount();if(!['admin','teacher'].includes(member.role))return Response.json({error:'Staff access required'},{status:403});const q=new URL(request.url).searchParams,id=q.get('cycle')||'';
+ const c=await client.from('teamville_term_cycles').select('*').eq('id',id).maybeSingle();if(c.error||!c.data)return Response.json({error:'Class sheet unavailable'},{status:404});
+ const [p,m]=await Promise.all([client.from('teamville_pupils').select('id,name,admission_number').eq('current_class',c.data.class_name).eq('current_session',c.data.session).eq('enrolment_status','active').order('name'),client.from('teamville_term_marks').select('*').eq('cycle_id',id)]);if(p.error||m.error)return Response.json({error:'Export unavailable'},{status:503});
+ const rows:unknown[][]=[['pupil_id','pupil_name','admission_number','subject','ca','exam','midterm']];for(const pupil of p.data)for(const subject of c.data.subjects){const mark=q.get('mode')==='template'?null:m.data.find(m=>m.pupil_id===pupil.id&&m.subject===subject);rows.push([pupil.id,pupil.name,pupil.admission_number,subject,mark?.ca,mark?.exam,mark?.midterm]);}
+ return new Response('\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n')+'\r\n',{headers:{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="Teamville-${c.data.kind}-Term1-${q.get('mode')==='template'?'template':'marks'}.csv"`,'Cache-Control':'private, no-store'}});
+}
