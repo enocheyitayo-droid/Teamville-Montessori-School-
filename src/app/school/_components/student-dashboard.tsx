@@ -35,8 +35,6 @@ export async function SchoolStudent({query:q,preview=false,parentView=false}:{qu
  <PupilPhoto id={pupil.id} name={readablePupilName(pupil.name)}/>
  <section id="student-profile" className="sp-panel"><h2>{parentView?'Your child’s profile':'My pupil profile'}</h2><div className="sp-statement"><span>Name<strong>{readablePupilName(pupil.name)}</strong></span><span>Admission number<strong>{pupil.admission_number || 'Not supplied yet'}</strong></span><span>Current class<strong>{pupil.current_class || 'Completed Grade 5'}</strong></span></div><p className="sp-small">Previous session: {pupil.historical_session||'No historical record'} · Recorded class: {pupil.historical_class}. Progression does not change the class shown on past results.</p></section>
  <div id="student-results"><PublishedPupilReports id={pupil.id}/><PupilCurrent id={pupil.id}/></div>
- {!preview&&archive.data.length>0&&<Link className="sp-button sp-secondary" href={`/school/pupils/${pupil.id}`}>Open published historical results</Link>}
- <section id="student-reports" className="sp-panel"><h2>Report cards</h2>{archive.data.length?<div className="sp-table-wrap"><table className="sp-table"><thead><tr><th>Session</th><th>Term</th><th>Recorded class</th></tr></thead><tbody>{archive.data.map(r=><tr key={r.id}><td>{r.session_label}</td><td>{r.term || 'Not confirmed'}</td><td>{r.original_class}</td></tr>)}</tbody></table></div>:<p className="sp-empty">No historical report cards have been approved for release yet.</p>}<p className="sp-small">Approved midterm and exam report cards can be opened above and printed or saved as PDF. Historical reports are released only after school review.</p></section>
  <div id="student-fees"><PupilFees id={pupil.id}/></div>
  </main>;
 }

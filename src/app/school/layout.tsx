@@ -12,6 +12,7 @@ import "./demo-refinements.css";
 import "./responsiveness.css";
 import "./report-search.css";
 import "./family-reports.css";
+import "./receipts.css";
 import "./developer.css";
 export const metadata:Metadata={title:{default:"Teamville school portal",template:"%s | Teamville portal"},robots:{index:false,follow:false},referrer:"same-origin"};
 export const dynamic="force-dynamic";
