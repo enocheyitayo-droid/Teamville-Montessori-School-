@@ -19,7 +19,7 @@ export const schoolAccount=cache(async function schoolAccount(){
   const client=await schoolClient();
   const {data:{user},error}=await client.auth.getUser();
   if(error || !user)return null;
-  const {data:member}=await client.from("teamville_members").select("user_id,name,role,active,password_ready,username").eq("user_id",user.id).eq("active",true).maybeSingle();
+  const {data:member}=await client.from("teamville_members").select("user_id,name,role,active,password_ready,username,is_head_of_school").eq("user_id",user.id).eq("active",true).maybeSingle();
   if(member?.username){const session=await client.rpc('teamville_session_valid');if(session.error||!session.data)return null;}
   return member?{client,member:member as SchoolMember}:null;
 });
@@ -27,6 +27,10 @@ export async function requireSchoolAccount(setup=false){
   const account=await schoolAccount();
   if(!account)redirect("/school/login");
   if(!setup && !account.member.password_ready)redirect("/school/setup");
+  if(!setup){const path=(await headers()).get('x-teamville-path')||'';
+    if(['/school/teacher-preview','/school/parent-preview','/school/student-preview'].includes(path)&&account.member.role!=='developer')notFound();
+    if((path.startsWith('/school/salaries')||path==='/school/leadership'||path==='/school/grading')&&!account.member.is_head_of_school)notFound();
+  }
   if(!setup&&account.member.role==='developer'){
     const path=(await headers()).get('x-teamville-path')||'';
     if(!['/school/teaching','/school/parent','/school/student','/school/teacher-preview','/school/parent-preview','/school/student-preview'].includes(path))redirect('/school/teaching');
@@ -34,3 +38,5 @@ export async function requireSchoolAccount(setup=false){
   return account;
 }
 export async function requireSchoolAdmin(){const account=await requireSchoolAccount();if(account.member.role!=="admin")notFound();return account;}
+
+export async function requireSchoolHOS(){const account=await requireSchoolAccount();if(account.member.role!=="admin"||!account.member.is_head_of_school)notFound();return account;}

@@ -18,3 +18,10 @@ export async function importSchoolExpenses(f:FormData){
  let rows;try{rows=parseExpenseCsv(await file.text());}catch{done('/school/purse',false);}
  const r=await client.rpc('teamville_import_expenses',{p_request:id,p_rows:rows});done('/school/purse',!r.error);
 }
+export async function updateOpeningPayment(f:FormData){
+ const {client}=await requireSchoolAdmin(),id=String(f.get('pupil')||''),value=String(f.get('amount')||'').trim(),amount=value==='0'?0:parseKobo(value);
+ if(!validMemberId(id))done('/school/finance',false);
+ const path=`/school/pupils/${id}`;
+ if(amount===null||f.get('checked')!=='yes')done(path,false);
+ const r=await client.rpc('teamville_update_opening_payment',{p_pupil:id,p_paid:amount,p_checked:true});done(path,!r.error);
+}

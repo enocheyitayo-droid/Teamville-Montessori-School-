@@ -1,5 +1,5 @@
 import {billBalance,type FeeBill,type FeePayment} from './operations';
-export type ReportedFeeStatus={id:string;pupil_id:string|null;session:string;term:number;source_name:string;reported_balance_kobo:number;as_of:string;opening_bill_id:string|null;note:string};
+export type ReportedFeeStatus={id:string;pupil_id:string|null;session:string;term:number;source_name:string;reported_balance_kobo:number;as_of:string;opening_bill_id:string|null;opening_payment_id?:string|null;note:string};
 export type FeeRate={session:string;term:number;class_name:string;category:'tuition'|'books';amount_kobo:number};
 export function termFeeStatus(id:string,entry:ReportedFeeStatus|undefined,bills:FeeBill[],payments:FeePayment[],session='2026/2027',term=1){
  const bs=bills.filter(b=>b.pupil_id===id&&b.session===session&&b.term===term),active=bs.filter(b=>!b.voided_at),balance=active.reduce((n,b)=>n+billBalance(b,payments),0);

@@ -3,7 +3,7 @@ import {SchoolLink as Link} from "@/components/school-link";
 import Image from "next/image";
 import {usePathname,useRouter,useSearchParams} from "next/navigation";
 import {useState,type FormEvent} from "react";
-import {Archive,ArrowUpRight,GraduationCap,LayoutDashboard,LockKeyhole,LogOut,Menu,Search,UserRoundCog,UsersRound,X,BookOpen,Wallet,ContactRound,Eye,ClipboardList,CalendarCheck,Megaphone,ShieldCheck,PanelLeftClose,PanelLeftOpen} from "lucide-react";
+import {Archive,ArrowUpRight,GraduationCap,LayoutDashboard,LockKeyhole,LogOut,Menu,Search,UserRoundCog,UsersRound,X,BookOpen,Wallet,ContactRound,ClipboardList,CalendarCheck,Megaphone,ShieldCheck,PanelLeftClose,PanelLeftOpen} from "lucide-react";
 import {schoolSignOut} from "@/lib/teamville-school/actions";
 import {currentSchoolSession,historicalSchoolSession,type SchoolMember} from "@/lib/teamville-school/model";
 import {SchoolSearchProvider,useSchoolSearch} from "./school-search";
@@ -13,7 +13,7 @@ function Workspace({member,children}:{member:SchoolMember;children:React.ReactNo
   const path=usePathname() || "/school",params=useSearchParams(),router=useRouter(),search=useSchoolSearch();
   const [open,setOpen]=useState(false),[collapsed,setCollapsed]=useState(false),archive=params?.get("cohort")==="archive";
   const parentPreview=path==="/school/parent-preview",studentPreview=path==="/school/student-preview",family=member.role==="parent" || member.role==="student",preview=path==="/school/teacher-preview"||studentPreview||parentPreview||path==='/school/results'&&params?.get('preview')==='teacher';
-  const label=preview?parentPreview?"Parent preview":studentPreview?"Student preview":"Teacher preview":{admin:"Administrator",teacher:"Teacher",student:"Student",parent:"Parent / guardian",developer:"Teacher · Parent · Student"}[member.role];
+  const label=member.is_head_of_school?"Head of School":preview?parentPreview?"Parent preview":studentPreview?"Student preview":"Teacher preview":{admin:"Administrator",teacher:"Teacher",student:"Student",parent:"Parent / guardian",developer:"Teacher · Parent · Student"}[member.role];
   const tab=params?.get('tab')||'overview';
   const items=[{label:"Overview",href:member.role==="teacher"?"/school/teaching":member.role==="student"?"/school/student":"/school",icon:LayoutDashboard,active:path==="/school"&&!archive||member.role==="teacher"&&path==="/school/teaching"&&tab==='overview'||path==="/school/student"||path==="/school/parent"},
     {label:family?member.role==="parent"?"My children":"My pupil profile":"Pupils & admissions",href:member.role==="student"?"/school/student#student-profile":family?"/school/parent#student-profile":"/school/pupils",icon:UsersRound,active:path.startsWith("/school/pupils")}];
@@ -22,10 +22,11 @@ function Workspace({member,children}:{member:SchoolMember;children:React.ReactNo
   if(!family&&!preview)items.push({label:'Class positions',href:'/school/positions',icon:GraduationCap,active:path==='/school/positions'});
   if(member.role!=="teacher"&&!preview)items.push({label:family?"Family fee accounts":"Fees & payments",href:"/school/finance",icon:Wallet,active:path==="/school/finance"&&params?.get("view")!=="outstanding"});
   if(member.role==='admin'&&!preview)items.push({label:'Debtors & outstanding',href:'/school/finance?view=outstanding',icon:UsersRound,active:path==='/school/finance'&&params?.get('view')==='outstanding'},{label:'School purse & payables',href:'/school/purse',icon:Wallet,active:path==='/school/purse'});
-  if(!family&&!preview)items.push({label:'Salary records & slips',href:'/school/salaries',icon:BookOpen,active:path.startsWith('/school/salaries')});
+  if(member.is_head_of_school&&!preview)items.push({label:'Salary records & slips',href:'/school/salaries',icon:BookOpen,active:path.startsWith('/school/salaries')});
   if(!preview)items.push({label:'School notices',href:'/school/notices',icon:Megaphone,active:path==='/school/notices'});
-  if(!family&&!preview)items.push({label:'Grading reference',href:'/school/grading',icon:ClipboardList,active:path==='/school/grading'});
-  if(member.role==="admin"&&!preview)items.push({label:"Head of School overview",href:"/school/leadership",icon:GraduationCap,active:path==="/school/leadership"},{label:"Teacher preview",href:"/school/teacher-preview",icon:Eye,active:false},{label:"Student preview",href:"/school/student-preview",icon:Eye,active:false},{label:"Parent preview",href:"/school/parent-preview",icon:Eye,active:false},{label:"Staff directory",href:"/school/directory",icon:ContactRound,active:path==="/school/directory"},{label:`${historicalSchoolSession} archive`,href:"/school?cohort=archive",icon:Archive,active:path==="/school"&&archive},{label:"Accounts & access",href:"/school/staff",icon:UserRoundCog,active:path==="/school/staff"});
+  if(member.is_head_of_school&&!preview)items.push({label:'Grading reference',href:'/school/grading',icon:ClipboardList,active:path==='/school/grading'});
+  if(member.is_head_of_school&&!preview)items.push({label:"Head of School overview",href:"/school/leadership",icon:GraduationCap,active:path==="/school/leadership"});
+  if(member.role==="admin"&&!preview)items.push({label:"Staff directory",href:"/school/directory",icon:ContactRound,active:path==="/school/directory"},{label:`${historicalSchoolSession} archive`,href:"/school?cohort=archive",icon:Archive,active:path==="/school"&&archive},{label:"Accounts & access",href:"/school/staff",icon:UserRoundCog,active:path==="/school/staff"});
   if(member.role==='admin'&&!preview)items.push({label:'Activity & audit trail',href:'/school/activity',icon:ShieldCheck,active:path==='/school/activity'});
   if(preview){items.splice(0,items.length,{label:parentPreview?"Parent workspace":studentPreview?"Student workspace":"Teacher workspace",href:parentPreview?"/school/parent-preview":studentPreview?"/school/student-preview":"/school/teacher-preview",icon:BookOpen,active:true},{label:"Return to administration",href:"/school",icon:LayoutDashboard,active:false});}
   if(member.role==='developer')items.splice(0,items.length,{label:'Teacher portal',href:'/school/teaching',icon:BookOpen,active:path.includes('teaching')||path.includes('teacher')},{label:'Parent portal',href:'/school/parent',icon:UsersRound,active:path.includes('parent')},{label:'Student portal',href:'/school/student',icon:GraduationCap,active:path.includes('student')});
