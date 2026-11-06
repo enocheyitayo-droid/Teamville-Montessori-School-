@@ -5,6 +5,7 @@ import {revalidatePath} from 'next/cache';
 import {validMemberId} from './access-input';
 import {currentSchoolSession} from './model';
 import {validDate,validTerm,parseKobo} from './operations';
+import {validPaymentPurpose} from './payment-purpose';
 import {parseExpenseCsv} from './expense-csv';
 function done(path:string,ok:boolean):never{revalidatePath('/school','layout');redirect(path+(ok?'?saved=1':'?error=check'));}
 export async function issueSelectedBills(f:FormData){
@@ -24,4 +25,19 @@ export async function updateOpeningPayment(f:FormData){
  const path=`/school/pupils/${id}`;
  if(amount===null||f.get('checked')!=='yes')done(path,false);
  const r=await client.rpc('teamville_update_opening_payment',{p_pupil:id,p_paid:amount,p_checked:true});done(path,!r.error);
+}
+
+export async function recordPupilPayment(f:FormData){
+ const {client}=await requireSchoolAdmin(),pupil=String(f.get('pupil')||''),bill=String(f.get('bill')||''),id=String(f.get('request_id')||''),amount=parseKobo(f.get('amount')),date=validDate(f.get('date')),purpose=validPaymentPurpose(f.get('purpose')),note=String(f.get('note')||'').trim();
+ if(!validMemberId(pupil))done('/school/finance',false);
+ const path=`/school/pupils/${pupil}`;
+ if(!validMemberId(id)||!validMemberId(bill)||!amount||!date||!purpose||note.length>500||f.get('verified')!=='yes')done(path,false);
+ const r=await client.rpc('teamville_record_itemised_payment',{p_id:id,p_pupil:pupil,p_bill:bill,p_amount:amount,p_date:date,p_method:String(f.get('method')||''),p_reference:String(f.get('reference')||'').trim(),p_purpose:purpose,p_note:note});done(path,!r.error);
+}
+export async function addPupilCharge(f:FormData){
+ const {client}=await requireSchoolAdmin(),pupil=String(f.get('pupil')||''),id=String(f.get('request_id')||''),term=validTerm(f.get('term')),amount=parseKobo(f.get('amount')),due=validDate(f.get('due')),purpose=validPaymentPurpose(f.get('purpose'));
+ if(!validMemberId(pupil))done('/school/finance',false);
+ const path=`/school/pupils/${pupil}`;
+ if(!validMemberId(id)||!term||!amount||!due||!purpose||f.get('verified')!=='yes')done(path,false);
+ const r=await client.rpc('teamville_issue_selected_bills',{p_request:id,p_pupils:[pupil],p_session:currentSchoolSession,p_term:term,p_description:purpose,p_amount:amount,p_due:due});done(path,!r.error);
 }

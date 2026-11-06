@@ -1,4 +1,5 @@
 "use server";
+import {validPaymentPurpose} from './payment-purpose';
 import {redirect} from 'next/navigation';
 import {revalidatePath} from 'next/cache';
 import {requireSchoolAccount,requireSchoolAdmin} from './auth';
@@ -63,7 +64,8 @@ export async function recordFeePayment(f:FormData){
  const {client}=await requireSchoolAdmin(),id=text(f,'request_id'),bill=text(f,'bill'),amount=parseKobo(f.get('amount')),date=validDate(f.get('date'));
  const path=`/school/finance?bill=${bill}`;
  if(!validMemberId(id)||!validMemberId(bill)||!amount||!date||f.get('verified')!=='yes')finish(path,false);
- const r=await client.rpc('teamville_record_payment',{p_id:id,p_bill:bill,p_amount:amount,p_date:date,p_method:text(f,'method'),p_reference:text(f,'reference')});finish(path,!r.error);
+ const purpose=validPaymentPurpose(f.get('purpose')||'Other / combined fees'),target=await client.from('teamville_fee_bills').select('pupil_id').eq('id',bill).maybeSingle();if(!purpose||target.error||!target.data)return finish(path,false);
+ const r=await client.rpc('teamville_record_itemised_payment',{p_id:id,p_pupil:target.data.pupil_id,p_bill:bill,p_amount:amount,p_date:date,p_method:text(f,'method'),p_reference:text(f,'reference'),p_purpose:purpose,p_note:text(f,'note')});finish(path,!r.error);
 }
 export async function voidFeeRecord(f:FormData){
  const {client}=await requireSchoolAdmin(),id=text(f,'id'),kind=text(f,'kind');if(!validMemberId(id)||!['bill','payment'].includes(kind))finish('/school/finance',false);
