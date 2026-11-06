@@ -20,7 +20,7 @@ export const schoolAccount=cache(async function schoolAccount(){
   const {data:{user},error}=await client.auth.getUser();
   if(error || !user)return null;
   const {data:member}=await client.from("teamville_members").select("user_id,name,role,active,password_ready,username,is_head_of_school").eq("user_id",user.id).eq("active",true).maybeSingle();
-  if(member?.username){const session=await client.rpc('teamville_session_valid');if(session.error||!session.data)return null;}
+  if(member){const session=await client.rpc('teamville_session_valid');if(session.error||!session.data)return null;}
   return member?{client,member:member as SchoolMember}:null;
 });
 export async function requireSchoolAccount(setup=false){

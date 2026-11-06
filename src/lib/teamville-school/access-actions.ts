@@ -58,11 +58,12 @@ export async function setSchoolAccountActive(form:FormData){
 export async function replaceSchoolInvitation(form:FormData){
   const {client,member}=await requireSchoolAdmin(),id=String(form.get("user_id") || "");
   if(!validMemberId(id))return fail("check");
-  const {data:target}=await client.from("teamville_members").select("role,active,password_ready").eq("user_id",id).maybeSingle();
-  if(!target || target.role==="admin" || !target.active || target.password_ready)return fail("check");
+  const {data:target}=await client.from("teamville_members").select("role,active,password_ready,username").eq("user_id",id).maybeSingle();
+  if(!target || !["parent","student","teacher"].includes(target.role) || target.username || !target.active || form.get("checked")!=="yes")return fail("check");
   const service=schoolService(),user=await service.auth.admin.getUserById(id);
   if(user.error || !user.data.user?.email)return fail("provider");
   const result=await service.auth.admin.generateLink({type:"recovery",email:user.data.user.email});
   if(result.error || !result.data.properties)return fail("provider");
+  const audit=await client.rpc("teamville_audit_recovery_link",{p_user:id});if(audit.error)return fail("provider");
   await invitationFlash(member.user_id,user.data.user.email,result.data.properties.hashed_token,"recovery");redirect("/school/staff?success=invited");
 }

@@ -13,7 +13,7 @@ export async function schoolProxy(request:NextRequest){
       setAll(values){values.forEach(({name,value})=>request.cookies.set(name,value));response=NextResponse.next({request});values.forEach(({name,value,options})=>response.cookies.set(name,value,{...options,...schoolCookieAttributes}));}
     }});
     const {data:{user}}=await client.auth.getUser();
-    if(!user && !["/school/login","/school/activate"].includes(request.nextUrl.pathname)){
+    if(!user && !["/school/login","/school/activate","/school/forgot-password"].includes(request.nextUrl.pathname)){
       const redirect=NextResponse.redirect(new URL("/school/login",request.url));
       response.cookies.getAll().forEach(cookie=>redirect.cookies.set(cookie));
       response=redirect;

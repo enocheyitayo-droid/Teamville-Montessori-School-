@@ -1,0 +1,4 @@
+import Link from 'next/link';
+export default function ForgotSchoolPassword(){
+ return <main id="main-content" className="sp-login"><span className="sp-eyebrow">School account recovery</span><h1>Forgot your password?</h1><p>Contact the school office with your assigned username or registered email address. After checking your identity, the admin can provide a private, one-use password-reset link or a new temporary staff password.</p><p>You choose the new password yourself. Never send your current password to the school or share a reset link with anyone else.</p><p>Parent and pupil accounts are still by school invitation. Password recovery does not create an account or link extra children.</p><div className="sp-downloads"><a className="sp-button" href="tel:+2348038548782">Call the school office</a><Link href="/school/login" className="sp-button sp-secondary">Back to sign in</Link></div></main>;
+}
