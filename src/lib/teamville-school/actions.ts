@@ -39,7 +39,7 @@ export async function activateSchoolAccount(form:FormData){
 export async function setSchoolPassword(form:FormData){
   const {client,member}=await requireSchoolAccount(true);
   const password=String(form.get("password") || ""),confirmation=String(form.get("confirmation") || "");
-  if(password.length<12 || password.length>128 || password!==confirmation)redirect("/school/setup?error=password");
+  if(password.length<8 || password.length>128 || password!==confirmation)redirect("/school/setup?error=password");
   const {error}=await client.auth.updateUser({password});
   if(error)redirect("/school/setup?error=password");
   const result=await client.rpc("teamville_finish_setup");
