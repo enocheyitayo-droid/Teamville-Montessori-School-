@@ -33,3 +33,40 @@ export async function reopenTermResults(f:FormData){const {client}=await staff()
 export async function correctCycleSubjects(f:FormData){const {client}=await requireSchoolAdmin(),id=text(f,'cycle'),subjects=text(f,'subjects').split(/\r?\n/).map(s=>s.trim()).filter(Boolean),max=text(f,'midterm_max')?Number(f.get('midterm_max')):null;if(!validMemberId(id)||(max!==null&&(!Number.isFinite(max)||max<=0||max>1000)))done('',false);const r=await client.rpc('teamville_replace_cycle_subjects',{p_cycle:id,p_subjects:subjects,p_note:text(f,'note'),p_midterm_max:max});done(id,!r.error);}
 export async function reviewTermResults(f:FormData){const {client}=await requireSchoolAdmin(),id=text(f,'cycle');if(!validMemberId(id))done('',false);if(text(f,'decision')==='publish'&&f.get('checked')!=='yes')done(id,false);const r=await client.rpc('teamville_review_term_cycle',{p_cycle:id,p_publish:text(f,'decision')==='publish',p_note:text(f,'note')});done(id,!r.error);}
 export async function reviewHistoricalReport(f:FormData){const {client}=await requireSchoolAdmin(),id=text(f,'report'),term=Number(f.get('term'));if(!validMemberId(id))redirect('/school');const r=await client.rpc('teamville_review_historical_report',{p_report:id,p_term:term,p_publish:text(f,'decision')==='publish',p_checked:f.get('checked')==='yes'});revalidatePath('/school','layout');redirect(`/school/reports/archive/${id}?${r.error?'error=check':'saved=1'}`);}
+export async function saveClassSubjectMarks(form: FormData) {
+ const {client} = await staff();
+ const cycle = text(form, 'cycle');
+ const subject = text(form, 'subject');
+ const component = text(form, 'component');
+ const back = `/school/results?cycle=${encodeURIComponent(cycle)}&subject=${encodeURIComponent(subject)}`;
+ const rows = Array.from(form.entries())
+  .filter(([name, score]) => name.startsWith('score_') && typeof score === 'string' && score.trim() !== '')
+  .map(([name, score]) => ({id: name.slice(6), subject, [component]: String(score).trim()}));
+ if (!validMemberId(cycle) || !subject || !['midterm', 'exam'].includes(component) ||
+     !rows.length || rows.length > 5000 || rows.some(row => !validMemberId(row.id)) ||
+     new Set(rows.map(row => row.id)).size !== rows.length) {
+  redirect(`${back}&error=check#enter-marks`);
+ }
+ const result = await client.rpc('teamville_upload_term_marks', {
+  p_cycle: cycle,
+  p_rows: rows,
+  p_component: component,
+ });
+ revalidatePath('/school/results');
+ redirect(`${back}&${result.error ? 'error=check' : 'entrySaved=1'}#enter-marks`);
+}
+export async function saveTeacherFeedback(form: FormData) {
+ const {client} = await staff();
+ const cycle = text(form, 'cycle');
+ const pupil = text(form, 'pupil');
+ if (!validMemberId(cycle) || !validMemberId(pupil)) done(cycle, false, pupil);
+ const feedback = Object.fromEntries(
+  ['Punctuality', 'Class participation', 'Conduct', 'Homework', 'comment']
+   .map(field => [field, text(form, field)]),
+ );
+ const result = await client.rpc('teamville_save_report_feedback', {
+  p_cycle: cycle, p_pupil: pupil, p_feedback: feedback,
+ });
+ revalidatePath('/school/results');
+ redirect(`/school/results?cycle=${encodeURIComponent(cycle)}&pupil=${encodeURIComponent(pupil)}&${result.error ? 'error=check' : 'feedbackSaved=1'}#teacher-feedback`);
+}

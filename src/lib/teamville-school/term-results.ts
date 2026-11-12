@@ -4,7 +4,7 @@ export type TermRules={session:string;term:number;ca_max:number;exam_max:number;
 export type TermCycle={id:string;class_name:string;session:string;term:number;kind:TermKind;subjects:string[];state:string;review_note:string|null;current_run:string|null;midterm_max?:number};
 export type TermMark={cycle_id:string;pupil_id:string;subject:string;ca:number|null;exam:number|null;midterm:number|null};
 export type SubjectResult={subject:string;ca:number|null;exam:number|null;midterm:number|null;total:number;grade:string};
-export type PupilReport={pupil_name:string;admission_number:string|null;class_name:string;session:string;term:number;kind:TermKind;subjects:SubjectResult[];total:number;maximum:number;average:number;grade:string;ca_max:number;exam_max:number;midterm_max:number;raw_total?:number;raw_maximum?:number;bands:TermRules['bands'];position?:number;ranked_pupils?:number;cohort_pupils?:number;provisional?:boolean;version?:number};
+export type PupilReport={teacher_feedback?:Record<string,string>;pupil_name:string;admission_number:string|null;class_name:string;session:string;term:number;kind:TermKind;subjects:SubjectResult[];total:number;maximum:number;average:number;grade:string;ca_max:number;exam_max:number;midterm_max:number;raw_total?:number;raw_maximum?:number;bands:TermRules['bands'];position?:number;ranked_pupils?:number;cohort_pupils?:number;provisional?:boolean;version?:number};
 export type ReportSnapshot={id:string;run_id:string;pupil_id:string;payload:PupilReport};
 const round=(n:number)=>Math.round((n+Number.EPSILON)*100)/100;
 export function resultGrade(score:number,bands:TermRules['bands']){return [...bands].sort((a,b)=>Number(b.min)-Number(a.min)).find(b=>score>=Number(b.min))?.grade || '—';}
