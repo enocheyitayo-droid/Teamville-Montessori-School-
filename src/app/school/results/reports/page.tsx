@@ -6,7 +6,8 @@ import {requireSchoolAccount} from '@/lib/teamville-school/auth';
 import {validMemberId} from '@/lib/teamville-school/access-input';
 import {readablePupilName,schoolPupilColumns,type SchoolPupil} from '@/lib/teamville-school/model';
 import {makePupilReport,rankPupilReports,type PupilReport,type ReportSnapshot,type TermCycle,type TermMark,type TermRules} from '@/lib/teamville-school/term-results';
-import {SchoolReportCard} from '../../_components/report-card';
+import {SchoolReportSheet} from '../../_components/report-sheet';
+import {attendanceSummary,subjectClassStats} from '@/lib/teamville-school/report-extras';
 
 export const metadata: Metadata = {title: 'Pupil reports'};
 
@@ -42,6 +43,17 @@ export default async function PupilReportDownloads({searchParams}:{searchParams:
   else if(draft)cards.push({pupil,report:{...draft,teacher_feedback:feedback.get(pupil.id)},published:false});
   else incomplete.push(pupil);
  }
+ // Subject averages and positions come from every complete report in the class, not just the pupils being downloaded.
+ const classCards=pupils.flatMap(pupil=>{const snap=snapshots.get(pupil.id),draft=ranked.get(pupil.id),report=snap?.payload||draft;return report?[{pupil_id:pupil.id,report}]:[];});
+ const stats=subjectClassStats(classCards);
+ const ids=cards.map(card=>card.pupil.id);
+ const [att,photos]=ids.length?await Promise.all([
+  client.from('teamville_attendance').select('pupil_id,status').in('pupil_id',ids).eq('session',cycle.session).eq('term',cycle.term),
+  client.from('teamville_pupil_photos').select('pupil_id').in('pupil_id',ids),
+ ]):[{data:[],error:null},{data:[],error:null}];
+ // Attendance and photos are optional on the sheet: a failed read shows "—" instead of breaking the download.
+ const attendanceRows=(att.error?[]:att.data||[]) as {pupil_id:string;status:string}[];
+ const withPhoto=new Set(((photos.error?[]:photos.data)||[]).map((row:{pupil_id:string})=>row.pupil_id));
  const label=cycle.kind==='exam'?'Final reports':'Midterm reports';
  const back=`/school/results?class=${encodeURIComponent(cycle.class_name)}&kind=${cycle.kind}${only?`&pupil=${only}`:''}`;
  return <main id="main-content" className="sp-main sp-print-document">
@@ -54,6 +66,6 @@ export default async function PupilReportDownloads({searchParams}:{searchParams:
    {cards.length>0&&<SchoolPrintButton label={cards.length===1?'Download PDF / Print':`Download all ${cards.length} as PDF / Print`}/>}
   </div>
   {incomplete.length>0&&<p className="sp-review-note sp-no-print">{only?'This pupil’s report is incomplete. Enter every subject’s marks to download it.':`Not included (incomplete marks): ${incomplete.map(x=>readablePupilName(x.name)).join(', ')}.`}</p>}
-  <div className="sp-report-pages">{cards.map(card=><div key={card.pupil.id} className="sp-report-page"><SchoolReportCard report={card.report} published={card.published}/></div>)}</div>
+  <div className="sp-report-pages">{cards.map(card=><div key={card.pupil.id} className="sp-report-page"><SchoolReportSheet report={card.report} published={card.published} pupilId={card.pupil.id} photo={withPhoto.has(card.pupil.id)} attendance={attendanceSummary(attendanceRows.filter(row=>row.pupil_id===card.pupil.id))} stats={stats}/></div>)}</div>
  </main>;
 }

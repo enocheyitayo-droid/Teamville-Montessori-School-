@@ -15,6 +15,7 @@ import "./family-reports.css";
 import "./receipts.css";
 import "./developer.css";
 import "./marks-entry.css";
+import "./report-sheet.css";
 export const metadata:Metadata={title:{default:"Teamville school portal",template:"%s | Teamville portal"},robots:{index:false,follow:false},referrer:"same-origin"};
 export const dynamic="force-dynamic";
 export default async function SchoolLayout({children}:{children:React.ReactNode}){
