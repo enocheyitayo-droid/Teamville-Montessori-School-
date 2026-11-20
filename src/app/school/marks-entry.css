@@ -50,3 +50,38 @@
   .sp-feedback-save button { flex: 1; }
 }
 .sp-feedback-clear { display: flex; align-items: center; gap: .4rem; margin-top: .3rem; font-size: .85rem; min-height: 36px; }
+/* Compact, phone-friendly rows: name on the left, score box on the right. */
+.sp-marks-row { flex-direction: row; text-align: left; }
+.sp-marks-row > span:first-child { flex: 1; min-width: 0; }
+.sp-marks-row strong { display: block; overflow-wrap: anywhere; font-size: .9rem; }
+/* "Not rated" is a small text option instead of a large radio button under every habit. */
+.sp-feedback-clear { position: relative; flex-direction: row; justify-content: flex-end; margin-top: .2rem; min-height: 32px; font-size: .8rem; color: #56667a; cursor: pointer; }
+.sp-feedback-clear input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.sp-feedback-clear span { text-decoration: underline; }
+.sp-feedback-clear input:checked + span { text-decoration: none; font-weight: 600; color: #182b45; }
+.sp-feedback-clear input:focus-visible + span { outline: 2px solid #234873; outline-offset: 2px; }
+/* Downloadable report cards: one pupil per printed page. */
+.sp-report-pages { display: grid; gap: 28px; }
+@media print {
+  .sp-print-document:has(.sp-report-pages) > .sp-panel-heading,
+  .sp-print-document:has(.sp-report-pages) > .sp-review-note { display: none !important; }
+  .sp-report-pages { display: block; }
+  .sp-report-page { break-after: page; }
+  .sp-report-page:last-child { break-after: auto; }
+  /* Fit a full subject list (up to about 20 subjects) on one A4 page. */
+  .sp-report-page .sp-report-paper { padding: 0 !important; border: 0 !important; box-shadow: none !important; font-size: 9pt; }
+  .sp-report-page .sp-report-brand img { width: 56px; height: 56px; }
+  .sp-report-page .sp-report-brand h2 { font-size: 15pt; margin: 0; }
+  .sp-report-page .sp-report-brand p, .sp-report-page .sp-report-brand strong { font-size: 8.5pt; margin: 1px 0; }
+  .sp-report-page .sp-report-state { margin: 4px 0; padding: 2px 8px; font-size: 7.5pt; }
+  .sp-report-page .sp-report-profile { margin: 6px 0; padding: 6px 0; }
+  .sp-report-page .sp-report-profile h3 { font-size: 12pt; margin: 0; }
+  .sp-report-page .sp-report-profile strong { font-size: 16pt; }
+  .sp-report-page .sp-position-note { margin: 4px 0; padding: 5px 10px; font-size: 8pt; }
+  .sp-report-page .sp-position-note p { margin: 2px 0 0; }
+  .sp-report-page .sp-table th, .sp-report-page .sp-table td { padding: 2.5px 8px !important; font-size: 8.5pt; line-height: 1.25; }
+  .sp-report-page .sp-feedback-report { margin-top: 6px; padding: 6px 10px; }
+  .sp-report-page .sp-feedback-report dl div { padding-block: 2px; }
+  .sp-report-page .sp-report-foot { margin-top: 6px; font-size: 7.5pt; }
+  .sp-report-page .sp-report-foot p { margin: 2px 0; }
+}

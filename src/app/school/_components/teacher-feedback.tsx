@@ -20,7 +20,7 @@ export function TeacherFeedbackFields({feedback = {}}:{feedback?: Record<string,
       ))}
      </div>
      <label className="sp-feedback-clear">
-      <input type="radio" name={habit} value="" defaultChecked={!feedback[habit]}/> Leave unrated
+      <input type="radio" name={habit} value="" defaultChecked={!feedback[habit]}/><span>Not rated</span>
      </label>
     </fieldset>
    ))}
