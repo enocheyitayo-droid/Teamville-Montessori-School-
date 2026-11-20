@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { siteOrigin } from "@/lib/site-settings";
 
+// Block the whole private portal and API by prefix, so new private pages are covered
+// automatically and robots.txt no longer lists every private route. The public
+// school photos under /school/*.png (used for link previews) stay crawlable.
 export default function robots(): MetadataRoute.Robots {
-  return { rules: { userAgent: "*", allow: "/", disallow: ["/school$", "/school?", "/school/login", "/school/activate", "/school/setup", "/school/pupils", "/school/staff", "/school/export", "/school/teaching", "/school/teacher-preview", "/school/finance", "/school/directory", "/school/student", "/school/parent", "/school/leadership", "/school/results", "/school/reports", "/school/positions", "/school/purse", "/school/salaries", "/school/notices", "/school/activity", "/school/grading", "/school/search", "/teamville-portal", "/portal", "/demo", "/dashboard", "/access", "/login", "/guide", "/preview", "/api/"] }, sitemap: `${siteOrigin()}/sitemap.xml` };
+  return { rules: { userAgent: "*", allow: ["/", "/school/*.png"], disallow: ["/school$", "/school/", "/school?", "/api/"] }, sitemap: `${siteOrigin()}/sitemap.xml` };
 }
